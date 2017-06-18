@@ -1,0 +1,42 @@
+#Build luckyfengyong/tensorflow-serving:0.5.1
+#docker run -it --net=host -v /vagrant:/vagrant --storage-opt size=20G gcr.io/tensorflow/tensorflow:1.0.1 /bin/bash
+
+FROM gcr.io/tensorflow/tensorflow:1.0.1
+RUN add-apt-repository -y ppa:webupd8team/java
+RUN add-apt-repository -y ppa:fkrull/deadsnakes-python2.7
+RUN apt-get update
+RUN apt-get install -y debconf-utils
+RUN echo "oracle-java8-installer shared/accepted-oracle-license-v1-1 select true" | debconf-set-selections
+RUN apt-get install -y oracle-java8-installer
+RUN apt-get install -y \
+        wget \
+        unzip \
+        build-essential \
+        curl \
+        libcurl3-dev \
+        git \
+        libfreetype6-dev \
+        libpng12-dev \
+        libzmq3-dev \
+        pkg-config \
+        python-software-properties \
+        python-dev \
+        python-numpy \
+        python-pip \
+        software-properties-common \
+        swig \
+        zip \
+        zlib1g-dev
+
+RUN apt-get upgrade
+RUN pip install grpcio
+
+RUN wget https://github.com/bazelbuild/bazel/releases/download/0.4.5/bazel-0.4.5-installer-linux-x86_64.sh
+RUN chmod +x bazel-0.4.5-installer-linux-x86_64.sh
+RUN ./bazel-0.4.5-installer-linux-x86_64.sh
+
+RUN git clone --recurse-submodules https://github.com/tensorflow/serving \
+    && cd serving \
+    && git checkout -b r0.5.1 -t remotes/origin/r0.5.1 \
+    && git submodule update --recursive \
+    && cd tensorflow && ./configure && cd .. && bazel build tensorflow_serving/...

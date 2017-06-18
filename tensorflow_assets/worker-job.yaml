@@ -1,0 +1,97 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ai
+  labels:
+    job: ai
+spec:
+  completions: 5
+  parallelism: 5
+  template:
+    metadata:
+      labels:
+        name: ai
+        job: ai
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: worker
+          image: luckyfengyong/tensorflow-job:0.5.1
+          command: ["bootstrap"]
+          args:
+          - --ps_num=2
+          - --job_name=ai
+          - --cmd=python /input/mnistv0.py --log_dir=/log --data_dir=/input --model_dir=/model
+          env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          ports:
+          - containerPort: 2222
+          volumeMounts:
+          - name: log
+            mountPath: /log
+          - name: input
+            mountPath: /input
+          - name: model
+            mountPath: /model
+      volumes:
+      - hostPath:
+          path: /tmp/log
+        name: log
+      - hostPath:
+          path: /tmp/input
+        name: input
+      - hostPath:
+          path: /tmp/model
+        name: model
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tensor-dashboard
+spec:
+  type: NodePort
+  ports:
+  - port: 6006
+    targetPort: 6006
+    protocol: TCP
+    name: tensorboard
+  selector:
+    name: tensor-dashboard
+
+---    
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: tensor-dashboard
+  labels:
+    app: tensor-dashboard
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: tensor-dashboard
+    spec:
+      containers:
+        - name: tensorboard
+          image: luckyfengyong/tensorflow-serving:0.5.1
+          command: ["tensorboard"]
+          args:
+          - --logdir=/log
+          - --port=6006
+          ports:
+          - containerPort: 6006
+          volumeMounts: 
+          - name: log
+            mountPath: /log
+      volumes:
+      - hostPath:
+          path: /tmp/log
+        name: log

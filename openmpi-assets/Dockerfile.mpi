@@ -1,0 +1,27 @@
+FROM ubuntu:16.04
+
+RUN apt-get update -y && \
+    apt-get install -y python-pip python-dev build-essential openssh-server vim && \
+    apt-get clean && apt-get purge && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+RUN pip install --upgrade pip && pip install kubernetes && pip install python-gflags
+
+RUN wget https://www.open-mpi.org/software/ompi/v2.1/downloads/openmpi-2.1.1.tar.gz
+
+RUN tar -xzvf openmpi-2.1.1.tar.gz && rm -rf openmpi-2.1.1.tar.gz && cd openmpi-2.1.1 && \
+    ./configure --prefix=/usr/local/ --enable-mpi-cxx --enable-cxx-exceptions && \
+    make all && \
+    make install
+
+RUN echo "/usr/local/lib" >> /etc/ld.so.conf && ldconfig
+
+RUN ln -s /usr/local/include/ /usr/include/mpi
+
+ENV LD_LIBRARY_PATH /usr/local/lib 
+     
+RUN ssh-keygen -t rsa -P '' -f ~/.ssh/id_rsa && \
+    cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys && \
+    echo "StrictHostKeyChecking no" >> /etc/ssh/ssh_config
+
+COPY bootstrap /usr/local/bin/
+

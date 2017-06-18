@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: serving
+spec:
+  type: NodePort
+  ports:
+  - port: 9000
+    targetPort: 9000
+    protocol: TCP
+    name: serving
+  selector:
+    role: serving
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: serving
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: serving
+        role: serving
+    spec:
+      containers:
+        - name: serving
+          image: luckyfengyong/tensorflow-serving:0.5.1
+          command: ["/serving/bazel-bin/tensorflow_serving/model_servers/tensorflow_model_server"]
+          args:
+          - --model_name=mnist
+          - --model_base_path=/trained_model
+          - --port=9000
+          ports:
+          - containerPort: 9000
+          volumeMounts: 
+          - name: model
+            mountPath: /trained_model
+      volumes:
+      - hostPath:
+          path: /tmp/model
+        name: model

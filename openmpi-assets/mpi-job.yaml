@@ -1,0 +1,41 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pi 
+  labels:
+    name: pi
+    job: pi
+spec:
+  completions: 3
+  parallelism: 3
+  template:
+    metadata:
+      name: pi
+      labels:
+        name: pi
+        job: pi
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: mpi
+          image: luckyfengyong/mpipi:2.1.1
+          imagePullPolicy: Always
+          command: ["bootstrap"]
+          args:
+          - --job_name=pi
+          - --cmd=/pi 0.001
+          env:
+            - name: PYTHONUNBUFFERED
+              value: '1'
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          ports:
+          - containerPort: 22
+      nodeSelector:
+        beta.kubernetes.io/arch: "amd64" 
