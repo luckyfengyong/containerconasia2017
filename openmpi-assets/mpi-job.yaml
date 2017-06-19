@@ -19,7 +19,7 @@ spec:
       containers:
         - name: mpi
           image: luckyfengyong/mpipi:2.1.1
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           command: ["bootstrap"]
           args:
           - --job_name=pi
