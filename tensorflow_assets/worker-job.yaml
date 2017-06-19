@@ -17,6 +17,7 @@ spec:
       containers:
         - name: worker
           image: luckyfengyong/tensorflow-job:0.5.1
+          imagePullPolicy: IfNotPresent
           command: ["bootstrap"]
           args:
           - --ps_num=2
@@ -82,6 +83,7 @@ spec:
       containers:
         - name: tensorboard
           image: luckyfengyong/tensorflow-serving:0.5.1
+          imagePullPolicy: IfNotPresent
           command: ["tensorboard"]
           args:
           - --logdir=/log
