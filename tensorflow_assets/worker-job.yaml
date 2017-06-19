@@ -22,7 +22,7 @@ spec:
           args:
           - --ps_num=2
           - --job_name=ai
-          - --cmd=python /input/mnistv0.py --log_dir=/log --data_dir=/input --model_dir=/model
+          - --cmd=python /input/mnistv0.py --log_dir=/log --data_dir=/tmp/input --model_dir=/model
           env:
             - name: POD_IP
               valueFrom:
