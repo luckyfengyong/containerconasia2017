@@ -27,6 +27,7 @@ spec:
       containers:
         - name: serving
           image: luckyfengyong/tensorflow-serving:0.5.1
+          imagePullPolicy: IfNotPresent
           command: ["/serving/bazel-bin/tensorflow_serving/model_servers/tensorflow_model_server"]
           args:
           - --model_name=mnist
